@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <link rel="apple-touch-icon" href="resources/icon-192.png">
+  <meta name="theme-color" id="themeColor" content="#FFF8F0">
+  <link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoiUGxhbnRQYWwiLCJzaG9ydF9uYW1lIjoiUGxhbnRQYWwiLCJzdGFydF91cmwiOiIuIiwiZGlzcGxheSI6InN0YW5kYWxvbmUiLCJiYWNrZ3JvdW5kX2NvbG9yIjoiI0ZGRjhGMCIsInRoZW1lX2NvbG9yIjoiI0ZGRjhGMCIsImljb25zIjpbeyJzcmMiOiJyZXNvdXJjZXMvaWNvbi0xOTIucG5nIiwic2l6ZXMiOiIxOTJ4MTkyIiwidHlwZSI6ImltYWdlL3BuZyJ9XX0=">
+  <title>PlantPal</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Rounded', 'Segoe UI', Roboto, sans-serif;
+      background-color: #FFF8F0;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 24px 16px 100px;
+      transition: background-color 0.4s ease;
+    }
+
+    .card {
+      background: rgba(255, 255, 255, 0.75);
+      border-radius: 28px;
+      padding: 36px 28px 40px;
+      max-width: 360px;
+      width: 100%;
+      text-align: center;
+      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06), 0 1px 4px rgba(0, 0, 0, 0.04);
+    }
+
+    .app-title {
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: #B8A99A;
+      margin-bottom: 28px;
+    }
+
+    .plant-image-wrapper {
+      width: 240px;
+      height: 240px;
+      margin: 0 auto 28px;
+      position: relative;
+      -webkit-mask-image: radial-gradient(ellipse 70% 70% at center, black 50%, transparent 100%);
+      mask-image: radial-gradient(ellipse 70% 70% at center, black 50%, transparent 100%);
+    }
+
+    .plant-image {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      transition: opacity 0.4s ease, transform 0.3s ease;
+    }
+
+    .plant-image.fade-out {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+
+    .plant-image.fade-in {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    .ring-wrapper {
+      position: relative;
+      width: 180px;
+      height: 180px;
+      margin: 0 auto 28px;
+    }
+
+    .progress-ring {
+      transform: rotate(-90deg);
+      width: 100%;
+      height: 100%;
+    }
+
+    .ring-bg {
+      fill: none;
+      stroke: #EDE6DD;
+      stroke-width: 8;
+    }
+
+    .ring-fg {
+      fill: none;
+      stroke-width: 8;
+      stroke-linecap: round;
+      transition: stroke-dashoffset 0.6s ease, stroke 0.4s ease;
+    }
+
+    .ring-text {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+    }
+
+    .moisture-value {
+      font-size: 44px;
+      font-weight: 700;
+      line-height: 1;
+      transition: color 0.4s ease;
+    }
+
+    .moisture-label {
+      font-size: 11px;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #B8A99A;
+    }
+
+    .status-text {
+      font-size: 17px;
+      font-weight: 500;
+      color: #6B5E53;
+      min-height: 24px;
+      transition: color 0.4s ease, opacity 0.3s ease;
+    }
+
+    .status-text.fade-out {
+      opacity: 0;
+    }
+
+    .status-text.fade-in {
+      opacity: 1;
+    }
+
+    .test-btn {
+      position: fixed;
+      bottom: 28px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(184, 169, 154, 0.15);
+      border: 1px solid rgba(184, 169, 154, 0.25);
+      color: #8C7E72;
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 500;
+      padding: 12px 28px;
+      border-radius: 100px;
+      cursor: pointer;
+      transition: background 0.2s ease, transform 0.15s ease;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .test-btn:active {
+      transform: translateX(-50%) scale(0.96);
+      background: rgba(184, 169, 154, 0.25);
+    }
+
+    .app-content { opacity: 0; transition: opacity 0.4s ease; }
+    .app-content.visible { opacity: 1; }
+
+    .sprout-loader .sprout {
+      animation: growSprout 1.8s ease-out infinite;
+      transform-origin: 50% 64%;
+    }
+
+    @keyframes growSprout {
+      0% { transform: scale(0.2); opacity: 0; }
+      20% { transform: scale(0.2); opacity: 1; }
+      60% { transform: scale(1); opacity: 1; }
+      80% { transform: scale(1.05); opacity: 1; }
+      100% { transform: scale(1.05); opacity: 0; }
+    }
+  </style>
+</head>
+<body>
+  <div id="loading-screen" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #FFFBF5; display: flex; justify-content: center; align-items: center; z-index: 1000; transition: opacity 0.5s ease-out;">
+    <div style="text-align: center;">
+      <svg width="150" height="150" viewBox="0 0 100 100" class="sprout-loader">
+        <path d="M25,65 L75,65 L70,90 L30,90 Z" fill="#E68A6E" stroke="#4F2E1E" stroke-width="2"/>
+        <path d="M20,60 L80,60 L80,68 L20,68 Z" fill="#E68A6E" stroke="#4F2E1E" stroke-width="2"/>
+        <ellipse cx="50" cy="64" rx="25" ry="3" fill="#6B4226"/>
+        <g class="sprout" opacity="0">
+          <path d="M50,62 Q50,45 45,35" stroke="#3AC267" stroke-width="3" fill="none"/>
+          <path d="M45,35 Q40,30 45,25 Q50,30 45,35" fill="#3AC267" stroke="#3AC267"/>
+          <ellipse cx="45" cy="30" rx="3" ry="1.5" fill="#3AC267" transform="rotate(-30, 45, 30)"/>
+        </g>
+      </svg>
+      <p style="font-family: -apple-system, BlinkMacSystemFont, sans-serif; color: #6B4226; font-size: 1.1rem; margin-top: 20px;">Watching it grow...</p>
+    </div>
+  </div>
+
+  <div class="app-content" id="appContent">
+    <div class="card">
+      <div class="app-title">plantpal</div>
+
+      <div class="plant-image-wrapper">
+        <img class="plant-image fade-in" id="plantImage" src="resources/state2_perfect.png" alt="Plant status">
+      </div>
+
+      <div class="ring-wrapper">
+        <svg class="progress-ring" viewBox="0 0 180 180">
+          <circle class="ring-bg" cx="90" cy="90" r="78"></circle>
+          <circle class="ring-fg" id="ringFg" cx="90" cy="90" r="78"></circle>
+        </svg>
+        <div class="ring-text">
+          <span class="moisture-value" id="moistureValue">--%</span>
+          <span class="moisture-label">moisture</span>
+        </div>
+      </div>
+
+      <div class="status-text fade-in" id="statusText"></div>
+    </div>
+  </div>
+
+  <button class="test-btn" id="testBtn" style="display: none;">Test Random Moisture</button>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-analytics.js";
+    import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAIALGVoXQQwS3I6n4x2AWHeVX9QeJi7mg",
+      authDomain: "plantmonitor-21b30.firebaseapp.com",
+      databaseURL: "https://plantmonitor-21b30-default-rtdb.firebaseio.com",
+      projectId: "plantmonitor-21b30",
+      storageBucket: "plantmonitor-21b30.firebasestorage.app",
+      messagingSenderId: "679699824078",
+      appId: "1:679699824078:web:be5424a1cca20c7e2f3f9f",
+      measurementId: "G-WL8QJHB647"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const analytics = getAnalytics(app);
+    const db = getDatabase(app);
+
+    const STATES = [
+      { min: 0,  max: 9,   image: 'resources/state5_dying.png',    text: 'Tell my family I love them...', accent: '#A0522D', bg: '#FFF3EC' },
+      { min: 10, max: 24,  image: 'resources/state4_dry.png',      text: 'Getting crispy! Help!',         accent: '#D4882B', bg: '#FFF6E8' },
+      { min: 25, max: 49,  image: 'resources/state3_thirsty.png',  text: 'A glass of water soon?',        accent: '#BDA23E', bg: '#FFFAED' },
+      { min: 50, max: 85,  image: 'resources/state2_perfect.png',  text: "I'm living my best life!",      accent: '#5E8C4A', bg: '#F5FAF0' },
+      { min: 86, max: 100, image: 'resources/state1_drowning.png', text: 'Whoa! A bit soggy in here.',    accent: '#3A8A8C', bg: '#EFF8F8' },
+    ];
+
+    const CIRCUMFERENCE = 2 * Math.PI * 78;
+
+    const plantImage = document.getElementById('plantImage');
+    const moistureValue = document.getElementById('moistureValue');
+    const statusText = document.getElementById('statusText');
+    const ringFg = document.getElementById('ringFg');
+    const themeColor = document.getElementById('themeColor');
+    const testBtn = document.getElementById('testBtn');
+
+    const loadingScreen = document.getElementById('loading-screen');
+    const appContent = document.getElementById('appContent');
+
+    ringFg.style.strokeDasharray = CIRCUMFERENCE;
+
+    let currentState = null;
+    let firstLoad = true;
+
+    function dismissLoader() {
+      if (!firstLoad) return;
+      firstLoad = false;
+      loadingScreen.style.opacity = '0';
+      appContent.classList.add('visible');
+      testBtn.style.display = '';
+      setTimeout(() => loadingScreen.remove(), 500);
+    }
+
+    function getState(moisture) {
+      return STATES.find(s => moisture >= s.min && moisture <= s.max);
+    }
+
+    function updatePlant(moisture) {
+      moisture = Math.max(0, Math.min(100, Math.round(moisture)));
+      const state = getState(moisture);
+
+      const offset = CIRCUMFERENCE - (moisture / 100) * CIRCUMFERENCE;
+      ringFg.style.strokeDashoffset = offset;
+      ringFg.style.stroke = state.accent;
+
+      moistureValue.textContent = moisture + '%';
+      moistureValue.style.color = state.accent;
+
+      document.body.style.backgroundColor = state.bg;
+      themeColor.setAttribute('content', state.bg);
+
+      if (!currentState || currentState.image !== state.image) {
+        plantImage.classList.remove('fade-in');
+        plantImage.classList.add('fade-out');
+        statusText.classList.remove('fade-in');
+        statusText.classList.add('fade-out');
+
+        setTimeout(() => {
+          plantImage.src = state.image;
+          statusText.textContent = state.text;
+          statusText.style.color = state.accent;
+          plantImage.classList.remove('fade-out');
+          plantImage.classList.add('fade-in');
+          statusText.classList.remove('fade-out');
+          statusText.classList.add('fade-in');
+        }, 300);
+      } else {
+        statusText.textContent = state.text;
+        statusText.style.color = state.accent;
+      }
+
+      currentState = state;
+    }
+
+    // Listen for real-time moisture updates from Firebase
+    const moistureRef = ref(db, 'moisture');
+    onValue(moistureRef, (snapshot) => {
+      const val = snapshot.val();
+      if (val !== null && typeof val === 'number') {
+        updatePlant(val);
+        dismissLoader();
+      }
+    });
+
+    testBtn.addEventListener('click', () => {
+      const moisture = Math.floor(Math.random() * 96) + 5;
+      updatePlant(moisture);
+    });
+  </script>
+</body>
+</html>
