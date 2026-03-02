@@ -179,7 +179,7 @@
       <div class="app-title">plantpal</div>
 
       <div class="plant-image-wrapper">
-        <img class="plant-image fade-in" id="plantImage" src="resources/state2_perfect.png" alt="Plant status">
+        <img class="plant-image" id="plantImage" src="" alt="Plant status">
       </div>
 
       <div class="ring-wrapper">
@@ -267,7 +267,13 @@
       document.body.style.backgroundColor = state.bg;
       themeColor.setAttribute('content', state.bg);
 
-      if (!currentState || currentState.image !== state.image) {
+      // First load: set everything instantly, no animation
+      if (!currentState) {
+        plantImage.src = state.image;
+        plantImage.classList.add('fade-in');
+        statusText.textContent = state.text;
+        statusText.style.color = state.accent;
+      } else if (currentState.image !== state.image) {
         plantImage.classList.remove('fade-in');
         plantImage.classList.add('fade-out');
         statusText.classList.remove('fade-in');
