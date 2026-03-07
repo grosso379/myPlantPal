@@ -297,11 +297,12 @@
     }
 
     // Listen for real-time moisture updates from Firebase
+    // Expects: { level: number (0-100), updated: number (unix timestamp) }
     const moistureRef = ref(db, 'moisture');
     onValue(moistureRef, (snapshot) => {
       const val = snapshot.val();
-      if (val !== null && typeof val === 'number') {
-        updatePlant(val);
+      if (val !== null && typeof val === 'object' && typeof val.level === 'number') {
+        updatePlant(val.level);
         dismissLoader();
       }
     });
